@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>For Dai Jah ❤️</title>
+<style>
+  body { margin:0; overflow:hidden; background:#111; font-family:Arial, sans-serif; }
+  #intro { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; color:white; }
+  #startBtn { padding:15px 35px; font-size:24px; cursor:pointer; border:none; background:#ff4da6; color:white; border-radius:10px; transition:0.3s; }
+  #startBtn:hover { background:#ff1a8c; }
+  #gameCanvas { display:none; width:100vw; height:100vh; }
+  #endMsg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:28px; color:#ff69b4; display:none; text-align:center; max-width:700px; line-height:1.5; opacity:0; transition:2s ease-in; }
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <h1>For My Love ❤️ Dai Jah</h1>
+  <p>Happy 2 Months! Click below to start 💕</p>
+  <button id="startBtn">Start Game</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="endMsg">
+  <h2>💌 To My Beautiful Dai Jah 💌</h2>
+  <p>
+    Baby, these past two months have been magical. Every laugh, every smile, every moment with you makes me fall deeper in love.  
+    You are my safe place, my joy, my everything. I promise to love you endlessly and cherish every second together.  
+    Happy 2 months, baby! Here's to us, always and forever ❤️
+  </p>
+  <h3>— Love, Jayden 🥰</h3>
+</div>
+
+<audio id="bgMusic" src="love-songs.mp3"></audio>
+<audio id="pianoHit" src="piano-hit.mp3"></audio>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const intro = document.getElementById('intro');
+const startBtn = document.getElementById('startBtn');
+const endMsg = document.getElementById('endMsg');
+const bgMusic = document.getElementById('bgMusic');
+const pianoHit = document.getElementById('pianoHit');
+
+let gameStarted=false, gameOver=false, score=0;
+let tiles=[], hearts=[], particles=[];
+
+function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+window.addEventListener('resize',resize);
+resize();
+
+const keys=['ArrowLeft','ArrowUp','ArrowDown','ArrowRight'];
+const cols = keys.length;
+const tileSpeed = 5;
+
+// Tile spawn
+function spawnTile(){ const col=Math.floor(Math.random()*cols); tiles.push({x:col*(canvas.width/cols),y:-50,key:keys[col]}); }
+// Heart background spawn
+function spawnHeart(){ hearts.push({x:Math.random()*canvas.width,y:-50,r:5+Math.random()*10,speed:1+Math.random()*2}); }
+// Particle effect spawn
+function spawnParticles(x,y){ for(let i=0;i<8;i++){ particles.push({x:x, y:y, vx:(Math.random()-0.5)*3, vy:(Math.random()-1.5)*3, r:2+Math.random()*3, alpha:1}); } }
+
+document.addEventListener('keydown', e=>{
+  if(!gameStarted||gameOver)return;
+  for(let i=0;i<tiles.length;i++){
+    if(tiles[i].key===e.key && tiles[i].y>canvas.height-120){
+      score++; spawnParticles(tiles[i].x + canvas.width/cols/2, tiles[i].y + 40); tiles.splice(i,1); pianoHit.currentTime=0; pianoHit.play();
+      break;
+    }
+  }
+});
+
+// Draw hearts
+function drawHearts(){
+  ctx.fillStyle='pink';
+  hearts.forEach((h,i)=>{
+    ctx.beginPath(); ctx.arc(h.x,h.y,h.r,0,Math.PI*2); ctx.fill();
+    h.y+=h.speed; if(h.y>canvas.height) hearts.splice(i,1);
+  });
+}
+
+// Draw particles
+function drawParticles(){
+  particles.forEach((p,i)=>{
+    ctx.fillStyle=`rgba(255,105,180,${p.alpha})`;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    p.x+=p.vx; p.y+=p.vy; p.alpha-=0.02;
+    if(p.alpha<=0) particles.splice(i,1);
+  });
+}
+
+function gameLoop(){
+  if(!gameStarted) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawHearts();
+  drawParticles();
+
+  // Draw glowing tiles
+  tiles.forEach(tile=>{
+    tile.y+=tileSpeed;
+    let gradient=ctx.createLinearGradient(tile.x, tile.y, tile.x+canvas.width/cols, tile.y+80);
+    gradient.addColorStop(0,'#00ffff'); gradient.addColorStop(1,'#00ffcc');
+    ctx.fillStyle=gradient;
+    ctx.shadowColor='#ff69b4';
+    ctx.shadowBlur=15;
+    ctx.fillRect(tile.x+10,tile.y,canvas.width/cols-20,80);
+    ctx.shadowBlur=0;
+  });
+
+  ctx.fillStyle='white';
+  ctx.font='28px Arial';
+  ctx.fillText(`Score: ${score}`,20,40);
+
+  if(!gameOver) requestAnimationFrame(gameLoop);
+  else{
+    bgMusic.pause();
+    endMsg.style.display='block';
+    setTimeout(()=>{ endMsg.style.opacity=1; },100);
+  }
+}
+
+let tileInterval, heartInterval;
+startBtn.addEventListener('click', ()=>{
+  gameStarted=true;
+  intro.style.display='none';
+  canvas.style.display='block';
+  bgMusic.play();
+  tileInterval=setInterval(spawnTile,700);
+  heartInterval=setInterval(spawnHeart,300);
+  gameLoop();
+  bgMusic.addEventListener('ended',()=>{ gameOver=true; });
+});
+</script>
+
+</body>
+</html>
