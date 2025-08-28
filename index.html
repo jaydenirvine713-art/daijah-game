@@ -32,8 +32,8 @@
   <h3>— Love, Jayden 🥰</h3>
 </div>
 
-<audio id="bgMusic" src="love-songs.mp3"></audio>
-<audio id="pianoHit" src="piano-hit.mp3"></audio>
+<audio id="bgMusic" src="love-songs.mp3" preload="auto"></audio>
+<audio id="pianoHit" src="piano-hit.mp3" preload="auto"></audio>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
@@ -116,22 +116,28 @@ function gameLoop(){
 
   if(!gameOver) requestAnimationFrame(gameLoop);
   else{
-    bgMusic.pause();
     endMsg.style.display='block';
     setTimeout(()=>{ endMsg.style.opacity=1; },100);
   }
 }
 
+// Short game duration: 1 minute
+const GAME_DURATION = 60000; // 60,000 ms = 1 minute
+
 let tileInterval, heartInterval;
-startBtn.addEventListener('click', ()=>{
+startBtn.addEventListener('click', async ()=> {
+  try { await bgMusic.play(); } catch(err){ console.log("Music blocked:", err); }
+
   gameStarted=true;
   intro.style.display='none';
   canvas.style.display='block';
-  bgMusic.play();
-  tileInterval=setInterval(spawnTile,700);
-  heartInterval=setInterval(spawnHeart,300);
+
+  tileInterval = setInterval(spawnTile, 700);
+  heartInterval = setInterval(spawnHeart, 300);
   gameLoop();
-  bgMusic.addEventListener('ended',()=>{ gameOver=true; });
+
+  // End game after 1 minute
+  setTimeout(()=>{ gameOver = true; bgMusic.pause(); }, GAME_DURATION);
 });
 </script>
 
